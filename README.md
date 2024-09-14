@@ -12,7 +12,7 @@ Global media player webapp for <a href="https://github.com/ItsRiprod/DeskThing">
 - Get currently playing song data from media player app (Priority 2 TODO): figure out how to make this work for (maybe) Linux MPRIS browsers
 
 ## Known bugs: (you shouldn't need to read these, only for devs!)
-- 1: Currently, fetching the song data from the app is not working.
+- Currently, fetching the song data from the app is not working.
 - - Temporary fix: request to Spotify app for song data, if the spotify app is not installed or no song is playing, return null.
 
 ## TODO list once app is bug free:

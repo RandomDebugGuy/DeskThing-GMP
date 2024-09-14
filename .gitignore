@@ -1,4 +1,5 @@
 src/builds
-src/1player.js
-src/DeskThingMediaCLI.zip
+src/test.js
+src/MediawinCLI
 src/node_modules
+src/latest
