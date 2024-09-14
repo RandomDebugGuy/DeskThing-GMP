@@ -1,0 +1,27 @@
+{
+  "name": "mediawin",
+  "version": "0.7.0",
+  "description": "The DeskThing Media Windows App is a local audio control control source for the DeskThing",
+  "main": "index.js",
+  "scripts": {
+    "build_package": "esbuild index.js --bundle --platform=node --outfile=builds/index.js && node buildHelper.js",
+    "build": "del /F /Q builds latest\\GWP.zip && npm run build_package && cd builds && ..\\..\\7z\\7z.exe a ../latest/GWP.zip * && cd ..",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postversion": "node -e \"const fs = require('fs'); const manifest = require('./public/manifest.json'); const pkg = require('./package.json'); if (manifest.version !== pkg.version) { manifest.version = 'v' + pkg.version; fs.writeFileSync('./public/manifest.json', JSON.stringify(manifest, null, 2), 'utf8'); console.log('Updated manifest version to ' + pkg.version); }\" && npm install"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "esbuild": "0.21.5"
+  },
+  "dependencies": {
+    "dbus-native": "^0.4.0",
+    "dbus-next": "^0.10.2",
+    "deskthing-client": "^0.8.1",
+    "deskthing-server": "^0.8.0",
+    "os": "^0.1.2",
+    "readline": "^1.3.0",
+    "x11": "^2.3.0"
+  }
+}
