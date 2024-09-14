@@ -67,7 +67,7 @@ class MediaPlayer {
       const object = await this.sessionBus.getProxyObject(this.serviceName, '/org/mpris/MediaPlayer2');
 
       this.playerObject = object;
-      this.player = object.getInterface('org.mpris.MediaPlayer2.Player');
+      this.player = await object.getInterface('org.mpris.MediaPlayer2.Player');
 
       this.connecting = false;
       return callback(null);

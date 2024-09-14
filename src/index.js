@@ -5,6 +5,9 @@ export { DeskThing }
 
 let mediaPlayer;
 
+const getSpotify = async (type) => {
+  await DeskThing.sendDataToOtherApp('spotify', { type: 'get', request: type, payload: { id: '' } });
+}
 const switchPlatform = async () => {
   let result;
 
@@ -26,7 +29,6 @@ const switchPlatform = async () => {
   return result;
 }
 
-
 const start = async () => {
   mediaPlayer = await switchPlatform()
 
@@ -34,7 +36,7 @@ const start = async () => {
   DeskThing.on('data', (newData) => {
     Data = newData
     if (Data) {
-      console.log(data)
+      console.log(Data)
     }
   })
 
@@ -72,19 +74,14 @@ const handleGet = async (data) => {
     return
   }
   let response;
+  let artUrl;
   console.log(data)
   switch (data.request) {
     case 'song':
-      response = await mediaPlayer.returnSongData()
-      response = { app: 'client', type: 'song', payload: response }
-      DeskThing.sendDataToClient(response)
+      await getSpotify('song');
       break
     case 'refresh':
-      response = await mediaPlayer.checkForRefresh()
-      if (response) {
-        response = { app: 'client', type: 'song', payload: response }
-        DeskThing.sendDataToClient(response)
-      }
+      await getSpotify('refresh');
       break
     default:
       DeskThing.sendError(`Unknown request: ${data.request}`)
