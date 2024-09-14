@@ -1,6 +1,5 @@
 import mediaPlayer from './player.js'
 
-
 class linuxPlayer {
   constructor(DeskThing) {
     this.DeskThing = DeskThing;
@@ -40,36 +39,6 @@ class linuxPlayer {
         data['track_duration'] = result['track_duration'];
       });
       
-
-      /* // Old code
-      const result = await this.executeCommand('')
-      if (result === false) {
-        this.sendError('Music Data returned false! There was an error');
-        return false;
-      } else {
-
-        // Check if result.id is different from the passed id
-        if (result.id !== id) {
-          this.currentId = result.id;
-          const musicData = result;
-          musicData.thumbnail = "data:image/png;base64," + musicData.thumbnail;
-          musicData.volume = await this.getVolumeInfo();
-          musicData.can_change_volume = true;
-          this.sendLog('Returning song data');
-      
-          return musicData
-        } else {
-          // Retry logic up to 5 attempts
-          if (retryCount < 5) {
-            this.sendLog(`Retry attempt ${retryCount + 1} for next command.`);
-            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for 1 second before retrying
-          return this.returnSongData(id, retryCount + 1); // Recursive call with incremented retryCount
-        } else {
-          this.sendError(`Reached maximum retry attempts for next command.`);
-          return false;
-        }
-      }
-      }*/
     } catch (error) {
       this.sendError(`Error executing next command: ${error}`);
       return false;
@@ -86,7 +55,7 @@ class linuxPlayer {
     return await this.returnSongData(id);
   }
 
-  async exeVol(args) {
+  async getSetVolume(args) {
     return new Promise((resolve, reject) => {
       if (!args) {
         const response = this.player.getVol((err) => {
@@ -103,7 +72,7 @@ class linuxPlayer {
   }
 
   async getVolumeInfo () {
-    const data = await this.exeVol()
+    const data = await this.getSetVolume()
     const args = data.split(' ')
   
     return parseInt(args[0], 10)
@@ -147,7 +116,7 @@ class linuxPlayer {
   }
 
   async volume(volumePercentage) {
-    this.exeVol(String(volumePercentage));
+    this.getSetVolume(String(volumePercentage));
     return true
   }
 

@@ -12,14 +12,7 @@ class MediaPlayer {
     this.connected = false;
   }
 
-  // Detect the current desktop environment
-  detectDesktopEnvironment() {
-    const desktopEnv = process.env.XDG_CURRENT_DESKTOP || process.env.DESKTOP_SESSION || 'Unknown';
-    return desktopEnv;
-  }
-
-  // Find the most used media player
-  detectMediaPlayer(callback) { // TODO: Add support for multiple browsers and add instance recognition to detect which instance is playing the configured service (maybe done)
+  detectMediaPlayer(callback) { // TODO: Add support for multiple browsers and add instance recognition to detect which instance is playing the configured service (may be done)
     const mediaPlayerPrefixes = [
       'org.mpris.MediaPlayer2.spotify',
       'org.mpris.MediaPlayer2.firefox.instance_',
@@ -28,7 +21,6 @@ class MediaPlayer {
       
     ]
 
-    // Use 'listNames' instead of 'ListNames'
     this.serviceNameBus.listNames(async (err, names) => {
       if (err) return callback(err);``
       
@@ -41,8 +33,6 @@ class MediaPlayer {
         }
       }
     });
-    
-
   }
 
   // Connect to the media player service and get the player interface
@@ -88,12 +78,6 @@ class MediaPlayer {
 
   // Ensure player is connected
   async ensureConnection(callback) {
-    //if (this.player) {
-    //  console.log("Player already connected.");
-    //  return callback(null);
-    //}
-
-    //console.log("Attempting to connect...");
     await this.connect(callback);
     callback(null);
   }
@@ -166,7 +150,6 @@ class MediaPlayer {
 
       // Beginning of custom functions getting data a specific way
       function customGetterFunctions() {
-          
         const playBackStatus = this.playerObject.Get('org.freedesktop.DBus.Properties', 'PlaybackStatus');
         try {
           if (playBackStatus.value === 'Playing') {
@@ -177,7 +160,6 @@ class MediaPlayer {
         } catch (err) {
           // may or may not add error handling here
         }
-        
         const metaData = this.playerObject.Get('org.mpris.MediaPlayer2.Player', 'Metadata');
         try {
           result['album'] = metaData['xesam:album'];
@@ -191,15 +173,12 @@ class MediaPlayer {
       customGetterFunctions()
       // End of custom functions getting data a specific way
 
+
       // Beginning of using predefined function to get data, looks cleaner I guess  
       getData('org.freedesktop.DBus.Properties', 'CanGoNext', 'can_skip');
       getData('org.freedesktop.DBus.Properties', 'CanPlay', 'can_play');
       getData('org.freedesktop.DBus.Properties', 'CanPause', 'can_pause');
       getData('org.freedesktop.DBus.Properties', 'CanGoPrevious', 'can_go_previous');
-      //getData('org.freedesktop.DBus.Properties', 'Shuffle', 'shuffle_state'); // These aren't provided when I originally found all of the dbus data, for some reason
-      //getData('org.freedesktop.DBus.Properties', 'LoopStatus', 'repeat_state');
-      //getData('org.freedesktop.DBus.Properties', 'PlaybackStatus', 'is_playing'); // Used custom function earlier
-      //getData('org.freedesktop.DBus.Properties', 'Rate', 'playback_rate');
       getData('org.freedesktop.DBus.Properties', 'Position', 'track_progress');
       // End of using predefined function to get data
 
@@ -329,36 +308,9 @@ class MediaPlayer {
     });
 
     return response * 100;
-    /* // Old code
-    if (!this.pulseAudioCoreInterface) {
-      this.connectToPulseAudio((err) => {
-        if (err) {
-          return callback(err);
-        }
-        this.getSystemVolume(callback);
-      });
-      return;
-    }
-
-    this.pulseAudioCoreInterface.Volume((err, volume) => {
-      if (err) {
-        if (callback) {
-          return callback(err);
-        }
-        return err;
-      }
-      const currentVolume = Math.round(volume[0] * 100);
-      callback(null, currentVolume);
-    });*/
   }
 
-/**
- * 
- * @param {Number} volume - Number from 1 to 100 to set volume to 
- * @param {*} callback 
- */
-
-  setVol(callback, volume) {
+  setVol(volume, callback) {
 
     this.ensureConnection((err) => {
       if (err) {
@@ -370,51 +322,6 @@ class MediaPlayer {
 
       response = this.player.Set('org.freedesktop.DBus.Properties', 'Volume', volume / 100);
     });
-
-    /* // Old code
-    if (!this.pulseAudioCoreInterface) {
-      this.connectToPulseAudio((err) => {
-        if (err) {
-          return callback(err);
-        }
-        this.setSystemVolume(volume, callback);
-      });
-      return;
-    }
-
-    const normalizedVolume = volume / 100;
-    this.pulseAudioCoreInterface.SetVolume([normalizedVolume], callback);
-    */
-  }
-
-  // Mute the system
-  mute(callback) {
-    if (!this.pulseAudioCoreInterface) {
-      this.connectToPulseAudio((err) => {
-        if (err) {
-          return callback(err);
-        }
-        this.mute(callback);
-      });
-      return;
-    }
-
-    this.pulseAudioCoreInterface.SetMute(true, callback);
-  }
-
-  // Unmute the system
-  unmute(callback) {
-    if (!this.pulseAudioCoreInterface) {
-      this.connectToPulseAudio((err) => {
-        if (err) {
-          return callback(err);
-        }
-        this.unmute(callback);
-      });
-      return;
-    }
-
-    this.pulseAudioCoreInterface.SetMute(false, callback);
   }
 }
 
