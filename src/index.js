@@ -21,7 +21,7 @@ const switchPlatform = async () => {
 
     result = new linuxPlayer(DeskThing)
   } else {
-    console.warn('GWP APP: Unsupported platform, assuming linux.');
+    console.warn('GMP APP: Unsupported platform, assuming linux.');
     const { linuxPlayer } = await import('./linuxplayer.js')
 
     result = new linuxPlayer(DeskThing)
