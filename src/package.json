@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build_package": "esbuild index.js --bundle --platform=node --outfile=builds/index.js && node buildHelper.js",
-    "build": "del /F /Q builds latest\\GWP.zip && npm run build_package && cd builds && ..\\..\\7z\\7z.exe a ../latest/GWP.zip * && cd ..",
+    "build": "del /F /Q builds latest\\GWP.zip 2>nul && npm run build_package && cd builds && ..\\..\\7z\\7z.exe a ../latest/GWP.zip * && cd ..",
     "test": "echo \"Error: no test specified\" && exit 1",
     "postversion": "node -e \"const fs = require('fs'); const manifest = require('./public/manifest.json'); const pkg = require('./package.json'); if (manifest.version !== pkg.version) { manifest.version = 'v' + pkg.version; fs.writeFileSync('./public/manifest.json', JSON.stringify(manifest, null, 2), 'utf8'); console.log('Updated manifest version to ' + pkg.version); }\" && npm install"
   },
