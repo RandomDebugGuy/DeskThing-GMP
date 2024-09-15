@@ -16,6 +16,7 @@ class linuxPlayer {
         if (id) {
           data['id'] = result['track_name'];
           return;
+          console.log(result + '--------------------------------')
         }
         data['album'] = result['album'];
         data['artist'] = result['artist'];
@@ -79,16 +80,21 @@ class linuxPlayer {
   } 
 
   async next(id) {
-    const result = await this.player.next()
-    if (result.success) {
-      return await this.returnSongData(id)
-    }
-    console.error('Error occured skipping track:', result)
-    return false
+    this.player.next((err) => {
+      if (err) {
+        console.log(err);
+        throw new Error("An error occured while skipping the track: " + err);
+      }
+    })
   }
 
   async previous(args) {
-    return this.player.previous();
+    return this.player.previous((err) => {
+      if (err) {
+        console.log(err);
+        throw new Error("An error occured while going to previous track: " + err);
+      }
+    });
   }
 
   async fastForward(seconds) {
@@ -100,15 +106,30 @@ class linuxPlayer {
   }
 
   async play(args) {
-    return this.player.play();
+    return this.player.play((err) => {
+      if (err) {
+        console.log(err);
+        throw new Error("An error occured while playing the track: " + err);
+      }
+    });
   }
 
   async pause(args) {
-    return this.player.pause();
+    return this.player.pause((err) => {
+      if (err) {
+        console.log(err);
+        throw new Error("An error occured while pausing: " + err);
+      }
+    });
   }
 
   async stop(args) {
-    return this.player.stop();
+    return this.player.stop((err) => {
+      if (err) {
+        console.log(err);
+        throw new Error("An error occured while stopping: " + err);
+      }
+    });
   }
 
   async seek(positionMs) {
