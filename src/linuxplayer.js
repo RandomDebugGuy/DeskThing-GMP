@@ -13,10 +13,10 @@ class linuxPlayer {
       let data = [];
       
       await this.player.getMetadata(async (err, result) => {
+        console.log(result + '--------------------------------')
         if (id) {
           data['id'] = result['track_name'];
           return;
-          console.log(result + '--------------------------------')
         }
         data['album'] = result['album'];
         data['artist'] = result['artist'];
@@ -59,12 +59,13 @@ class linuxPlayer {
   async getSetVolume(args) {
     return new Promise((resolve, reject) => {
       if (!args) {
-        const response = this.player.getVol((err) => {
+        const response = this.player.getVol((err, response) => {
           if (err) reject(err);
+          return response;
         });
         resolve(response);
       } else {
-        this.player.setVol(args / 100, (err) => {
+        this.player.setVol(args, (err) => {
           if (err) reject(err);
         });
         resolve(true);
@@ -73,10 +74,7 @@ class linuxPlayer {
   }
 
   async getVolumeInfo () {
-    const data = await this.getSetVolume()
-    const args = data.split(' ')
-  
-    return parseInt(args[0], 10)
+    return await this.getSetVolume()
   } 
 
   async next(id) {
@@ -98,11 +96,11 @@ class linuxPlayer {
   }
 
   async fastForward(seconds) {
-    return this.player.seek(seconds);
+    return this.player.seek(seconds * 1000000);
   }
 
   async rewind(seconds) {
-    return this.player.seek(-seconds);
+    return this.player.seek(-seconds * 1000000);
   }
 
   async play(args) {
@@ -137,16 +135,17 @@ class linuxPlayer {
   }
 
   async volume(volumePercentage) {
-    this.getSetVolume(String(volumePercentage));
+    this.getSetVolume(volumePercentage);
     return true
   }
 
   async repeat(state) {
-    return 'Unsupported at the moment'
+    this.player.setRepeat(state);
+    return true
   }
 
   async shuffle(state) {
-    return 'Unsupported at the moment'
+    this.player.setShuffle(state);
   }
 }
 

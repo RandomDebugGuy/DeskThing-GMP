@@ -6,10 +6,12 @@ class MediaPlayer {
     this.serviceName = null;
     this.player = null;
     this.playerObject = null;
+    this.playerObjectProperties = null;
     this.sessionBus = dbus.sessionBus();
     this.serviceNameBus = dbusnative.sessionBus();
     this.connecting = false;
     this.connected = false;
+    this.playerInitTimeout = 500;
   }
 
   detectMediaPlayer(callback) { // TODO: Add support for multiple browsers and add instance recognition to detect which instance is playing the configured service (may be done)
@@ -65,11 +67,14 @@ class MediaPlayer {
     try {
       const object = await this.sessionBus.getProxyObject(this.serviceName, '/org/mpris/MediaPlayer2');
 
-      this.playerObject = object;
       this.player = await object.getInterface('org.mpris.MediaPlayer2.Player');
+      this.playerObject = object;
+      this.playerObjectProperties = await object.getInterface('org.freedesktop.DBus.Properties')
 
       this.connecting = false;
-      return callback(null);
+      return setTimeout(() => {
+        callback(null);
+      }, this.playerInitTimeout);
     } catch (err) {
       return callback(err);
     }
@@ -78,31 +83,30 @@ class MediaPlayer {
   // Ensure player is connected
   async ensureConnection(callback) {
     await this.connect(callback);
-    callback(null);
   }
 
   /**
-   * @param {*} callback - Returns a callback function with variables containing the following:
-   * @property {String} album
-   * @property {Array} artist
-   * @property {string} track_name
-   * @property {something} thumbnail 
-   * @property {boolean} is_playing
-   * @property {boolean} can_skip
-   * @property {boolean} can_play
-   * @property {boolean} can_pause
-   * @property {boolean} can_go_previous
-   * @property {null} playlist - Unsupported at the moment, returns null
-   * @property {null} playlist_id - Unsupported at the moment, returns null
-   * @property {null} volume - Unsupported at the moment, returns null
-   * @property {boolean} can_fast_forward - Unsupported at the moment, returns false
-   * @property {boolean} can_like - Unsupported at the moment, returns false
-   * @property {boolean} can_change_volume - Unsupported at the moment, returns false
-     @property {boolean} can_set_output - Unsupported at the moment, returns false
-   * @property {boolean} shuffle_state - Unsupported at the moment, returns false
-   * @property {string} repeat_state - Unsupported at the moment, returns off
-   * @param {number} track_progress - Unsupported at the moment, returns 32768000
-   * @param {number} track_duration - Unsupported at the moment, returns 32768000
+   * @param {*} callback - Callback function returning a true or false error bool and a JSON array containing the following: 
+   * @param {String} album
+   * @param {Array} artist
+   * @param {String} track_name
+   * @param {String} thumbnail 
+   * @param {Boolean} is_playing
+   * @param {Number} volume
+   * @param {Boolean} shuffle_state
+   * @param {String} repeat_state
+   * @param {Number} track_progress
+   * @param {Number} track_duration
+   * @param {Boolean} can_skip
+   * @param {Boolean} can_play
+   * @param {Boolean} can_pause
+   * @param {Boolean} can_go_previous
+   * @param {Boolean} can_fast_forward
+   * @param {Boolean} can_change_volume
+   * @param {Boolean} can_like - Unsupported at the moment, returns false
+     @param {Boolean} can_set_output - Unsupported at the moment, returns false
+   * @param {null} playlist - Unsupported at the moment, returns null
+   * @param {null} playlist_id - Unsupported at the moment, returns null
   */ // don't ask me why I made this jsdoc but I did 
 
   
@@ -114,77 +118,87 @@ class MediaPlayer {
         return callback(err);
       }
 
-      const player = await this.playerObject.Get((err) => {
-        if (err) {
-          return callback(err);
-        }
-      });
+      console.log(await this.playerObjectProperties.Get('org.mpris.MediaPlayer2.Player', 'Metadata'))
+      const player = this.playerObjectProperties
 
       // Helper function to get data and append it to result
       const getData = (interfaceName, property, key) => {
-        result[key] = player.Get(interfaceName, property);
+        result[key] = player.Get(interfaceName, property).value;
+        return result[key];
       };
 
       // Beginning of creating a predefined variable function to append to result
       function appendPermanentVariables() {
         result['playlist'] = null;
         result['playlist_id'] = null;
-        result['volume'] = null;
     
         result['can_fast_forward'] = false;
         result['can_like'] = false;
-        result['can_change_volume'] = false;
+        result['can_change_volume'] = true;
         result['can_set_output'] = false;
-        result['shuffle_state'] = false;
-
-        result['repeat_state'] = "off";
-
-        result['playback_rate'] = 1;
-        result['track_duration'] = 32768000;
-        result['track_progress'] = 32768000;
       };
       appendPermanentVariables();
       // End of creating a predefined variable function to append to result
 
 
       // Beginning of custom functions getting data a specific way
-      function customGetterFunctions() {
-        const playBackStatus = this.playerObject.Get('org.freedesktop.DBus.Properties', 'PlaybackStatus');
+      async function customGetterFunctions() {
+        const playBackStatus = await player.Get('org.mpris.MediaPlayer2.Player', 'PlaybackStatus');
         try {
-          if (playBackStatus.value === 'Playing') {
+          if (playBackStatus.value == 'Playing') {
             result['is_playing'] = true;
           } else {
             result['is_playing'] = false;
           }
         } catch (err) {
+          console.log(err)
           // may or may not add error handling here
         }
-        const metaData = this.playerObject.Get('org.mpris.MediaPlayer2.Player', 'Metadata');
+        const metaData = await player.Get('org.mpris.MediaPlayer2.Player', 'Metadata');
         try {
-          result['album'] = metaData['xesam:album'];
-          result['artist'] = metaData['xesam:artist'];
-          result['track_name'] = metaData['xesam:title'];
-          result['thumbnail'] = metaData['mpris:artUrl'];
+          result['album'] = metaData.value['xesam:album'].value;
+          result['artist'] = metaData.value['xesam:artist'].value;
+          result['track_name'] = metaData.value['xesam:title'].value;
+          result['thumbnail'] = metaData.value['mpris:artUrl'].value;
+          result['track_progress'] = metaData.value['mpris:length'].value;
         } catch (err) {
+          console.log(err)
           // may or may not add error handling here
         }
       }
-      customGetterFunctions()
+      await customGetterFunctions()
       // End of custom functions getting data a specific way
 
 
       // Beginning of using predefined function to get data, looks cleaner I guess  
-      getData('org.freedesktop.DBus.Properties', 'CanGoNext', 'can_skip');
-      getData('org.freedesktop.DBus.Properties', 'CanPlay', 'can_play');
-      getData('org.freedesktop.DBus.Properties', 'CanPause', 'can_pause');
-      getData('org.freedesktop.DBus.Properties', 'CanGoPrevious', 'can_go_previous');
-      getData('org.freedesktop.DBus.Properties', 'Position', 'track_progress');
+      await getData('org.mpris.MediaPlayer2.Player', 'CanGoNext', 'can_skip');
+      await getData('org.mpris.MediaPlayer2.Player', 'CanPlay', 'can_play');
+      await getData('org.mpris.MediaPlayer2.Player', 'CanPause', 'can_pause');
+      await getData('org.mpris.MediaPlayer2.Player', 'CanGoPrevious', 'can_go_previous');
+      await getData('org.mpris.MediaPlayer2.Player', 'Position', 'track_progress');
+      await getData('org.mpris.MediaPlayer2.Player', 'LoopStatus', 'repeat_state');
+      await getData('org.mpris.MediaPlayer2.Player', 'Shuffle', 'shuffle_state');
+      await getData('org.mpris.MediaPlayer2.Player', 'CanSeek', 'can_seek');
+      await getData('org.mpris.MediaPlayer2.Player', 'CanControl', 'can_control');
+      await getData('org.mpris.MediaPlayer2.Player', 'Volume', 'volume');
+      await getData('org.mpris.MediaPlayer2.Player', 'Rate', 'playback_rate');
       // End of using predefined function to get data
 
+      setTimeout(() => {
+        callback(null, result);
+      }, 1000);
     });
 
-    callback(null, result);
-    //return result;
+  }
+
+  async getSongId() {
+    this.ensureConnection(async (err) => {
+      if (err) {
+        return callback(err);
+      }
+      const result = await this.playerObjectProperties.Get('org.mpris.MediaPlayer2.Player', 'Metadata')
+      return result.value['mpris:trackid'].value.split('/').pop();
+    })
   }
  
   // Control playback
@@ -234,6 +248,7 @@ class MediaPlayer {
       try {
       this.player.Stop();
       } catch(e) {
+        console.log(e);
         callback(e);
       }
     
@@ -241,7 +256,7 @@ class MediaPlayer {
   }
 
   next(callback) {
-    this.ensureConnection((err) => {
+    this.ensureConnection(async (err) => {
       if (err) {
         if (callback) {
           return callback(err);
@@ -250,8 +265,10 @@ class MediaPlayer {
       }
 
       try {
-      this.player.Next();
+        await this.player.Next();
+      callback(null, await this.getSongId());
       } catch (e) {
+        console.log(e);
         callback(e);
       }
     });
@@ -269,13 +286,18 @@ class MediaPlayer {
       try {
       this.player.Previous();
       } catch (e) {
+        console.log(e);
         callback(e);
       }
     });
   }
 
+  /**
+   * @param offset - Integer to seek forward or backwards in µs
+   * @param callback - Callback function
+   */
   seek(offset, callback) {
-    this.ensureConnection((err) => {
+    this.ensureConnection(async (err) => {
       if (err) {
         if (callback) {
           return callback(err);
@@ -284,8 +306,9 @@ class MediaPlayer {
       }
 
       try {
-      this.player.Seek(offset);
+      await this.player.Seek(offset);
       } catch (e) {
+        console.log(e);
         callback(e);
       }
     });
@@ -294,24 +317,22 @@ class MediaPlayer {
   getVol(callback) {
     let response; 
 
-    this.ensureConnection((err) => {
+    this.ensureConnection(async (err) => {
       if (err) {
         if (callback) {
           return callback(err);
         }
         return err;
       }
-
-      response = this.player.Get('org.freedesktop.DBus.Properties', 'Volume');
       
+      response = await this.playerObjectProperties.Get('org.mpris.MediaPlayer2.Player', 'Volume');
+      console.log(response.value);
+      if (callback) return callback(null, response.value * 100);
     });
-
-    return response * 100;
   }
 
   setVol(volume, callback) {
-
-    this.ensureConnection((err) => {
+    this.ensureConnection(async (err) => {
       if (err) {
         if (callback) {
           return callback(err);
@@ -319,8 +340,42 @@ class MediaPlayer {
         return err;
       }
 
-      response = this.player.Set('org.freedesktop.DBus.Properties', 'Volume', volume / 100);
+      const response = await this.playerObjectProperties.Set('org.mpris.MediaPlayer2.Player', 'Volume', new dbus.Variant('d', volume / 100));
+      if (callback) callback(null, response);
     });
+  }
+
+  setRepeat(state) {
+    this.ensureConnection(async (err) => {
+      if (err) {
+        if (callback) {
+          return callback(err);
+        }
+        return err;
+      }
+      try {
+        this.playerObjectProperties.Set('org.mpris.MediaPlayer2.Player', 'LoopStatus', new dbus.Variant('s', state));
+        return true;
+      } catch (e) {
+        console.log(e)
+      }
+    })
+  }
+  setShuffle(state) {
+    this.ensureConnection(async (err) => {
+      if (err) {
+        if (callback) {
+          return callback(err);
+        }
+        return err;
+      }
+      try {
+        this.playerObjectProperties.Set('org.mpris.MediaPlayer2.Player', 'Shuffle', new dbus.Variant('b', state));
+        return true;
+      } catch (e) {
+        console.log(e)
+      }
+    })
   }
 }
 

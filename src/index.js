@@ -2,6 +2,7 @@ import { DeskThing as DK } from 'deskthing-server'
 import os from 'os'
 const DeskThing = DK.getInstance()
 export { DeskThing }
+const platform = os.platform();
 
 let mediaPlayer;
 
@@ -11,7 +12,6 @@ const getSpotify = async (type) => {
 const switchPlatform = async () => {
   let result;
 
-  let platform = await os.platform();
   if (platform == 'win32') {
     const { winPlayer }  = await import('./winplayer.js')
 
@@ -78,7 +78,7 @@ const handleGet = async (data) => {
   console.log(data)
   switch (data.request) {
     case 'song':
-      await getSpotify('song');
+      await mediaPlayer.returnSongData()
       break
     case 'refresh':
       await getSpotify('refresh');

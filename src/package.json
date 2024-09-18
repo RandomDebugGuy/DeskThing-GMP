@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "build_package": "esbuild index.js --bundle --platform=node --outfile=builds/index.js && node buildHelper.js",
-    "build": "del /F /Q builds latest\\GMP.zip 2>nul && npm run build_package && cd builds && ..\\..\\7z\\7z.exe a ../latest/GMP.zip * && cd .."
+    "build": "del /F /Q builds latest\\GMP.zip 2>nul && npm run build_package && cd builds && ..\\..\\7z\\7z.exe a ../latest/GMP.zip * && cd ..",
+    "build-linux": "rm -rf builds && esbuild index.js --bundle --platform=node --outfile=builds/index.js && node buildHelper.js && cd builds && zip -r ../latest/GMP.zip . && cd .."
   },
   "keywords": [],
   "author": "",
@@ -18,6 +19,7 @@
     "dbus-next": "^0.10.2",
     "deskthing-client": "^0.8.1",
     "deskthing-server": "^0.8.0",
+    "extract-zip": "^2.0.1",
     "os": "^0.1.2",
     "readline": "^1.3.0",
     "x11": "^2.3.0"
