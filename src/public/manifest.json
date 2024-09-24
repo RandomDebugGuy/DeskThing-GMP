@@ -1,15 +1,16 @@
 {
   "id": "local",
   "isAudioSource": true,
-  "isWebApp": false,
+  "isScreenSaver": false,
+  "isWebApp": true,
   "isLocalApp": false,
   "requires": [
     "utility"
   ],
   "label": "Global Media Player",
-  "version": "v0.8.3",
+  "version": "0.8.8",
   "description": "GMP (Global Media Player) is a multiple streaming platform (only Spotify is supported at the moment) DeskThing app that locally controls playback of your selected streaming platform.",
-  "author": "RandomDebugGuy / ItsRiprod (for the windows player code)",
+  "author": "RandomDebugGuy",
   "platforms": [
     "windows",
     "linux"
