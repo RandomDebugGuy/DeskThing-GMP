@@ -1,4 +1,5 @@
-src/builds
-src/test.js
+src/dist
+src/testFolder
 src/node_modules
 src/latest/*
+src/*.zip

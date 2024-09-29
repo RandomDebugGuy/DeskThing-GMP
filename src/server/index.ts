@@ -61,22 +61,34 @@ const start = async () => {
     DeskThing.addSettings(settings)
   }
 
+
   DeskThing.on('get', handleGet)
   DeskThing.on('set', handleSet)
 }
 
 DeskThing.on('start', start)
 
+let lastRequestTimestamp = 0;
+const cooldownPeriod = 4000;
+let now = 0;
+let lastRequestTime = 0;
 
 const handleGet = async (data) => {
-  console.log('Receiving Get Data', data)
-  if (data == null) {
-    DeskThing.sendError('No args provided')
-    return
+  now = Date.now();
+  lastRequestTime = now - lastRequestTimestamp;
+  if (lastRequestTime < cooldownPeriod) { // request cooldown logic
+    console.log(`Request sent too quickly. Delaying for ${(cooldownPeriod - lastRequestTime) / 1000} seconds.`);
+    await new Promise(resolve => setTimeout(resolve, cooldownPeriod - lastRequestTime));
   }
-  let response;
-  let artUrl;
-  console.log(data)
+  lastRequestTimestamp = Date.now();
+
+  console.log('Receiving Get Data', data);
+  if (data == null) {
+    DeskThing.sendError('No args provided');
+    return;
+  }
+  
+  console.log(data);
   switch (data.request) {
     case 'song':
       await mediaPlayer.returnSongData(DeskThing)
