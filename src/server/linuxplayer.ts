@@ -10,7 +10,6 @@ class linuxPlayer {
     return JSON.stringify(obj, (key, value) =>
       typeof value === 'bigint' ? value.toString() : value
     );
-    
   }
   
   async returnSongData(DeskThing, isRefresh) {
@@ -25,7 +24,6 @@ class linuxPlayer {
       
           const processedThumbnail = await this.processThumbnail(result['thumbnail'], DeskThing);
           
-          // Construct the data object using object literal
           const data = {
             album: result['album'],
             artist: result['artist'],
@@ -48,19 +46,15 @@ class linuxPlayer {
             track_progress: Number(result['track_progress']),
             track_duration: Number(result['track_length'])
           };
-          console.log(result['track_length'], 'is the duration')
-      
-          console.log('executing to here ---------------------------------------------------------------------');
+
           resolve(data);
         });
       });
 
       if (isRefresh) {
         DeskThing.sendDataToClient({ app: 'client', type: 'song', payload: data });
-        console.log('sent refresh');
       } else {
         DeskThing.sendDataToClient({ app: 'client', type: 'song', payload: data });
-        console.log('sent song');
       }
       
     } catch (error) {
