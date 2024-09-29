@@ -37941,17 +37941,13 @@ var init_linuxplayer = __esm({
                 track_progress: Number(result["track_progress"]),
                 track_duration: Number(result["track_length"])
               };
-              console.log(result["track_length"], "is the duration");
-              console.log("executing to here ---------------------------------------------------------------------");
               resolve(data2);
             });
           });
           if (isRefresh) {
             DeskThing2.sendDataToClient({ app: "client", type: "song", payload: data });
-            console.log("sent refresh");
           } else {
             DeskThing2.sendDataToClient({ app: "client", type: "song", payload: data });
-            console.log("sent song");
           }
         } catch (error) {
           return false;
