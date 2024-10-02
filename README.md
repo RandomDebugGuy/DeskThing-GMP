@@ -1,4 +1,4 @@
-# Global Media Player (GMP, not very creative but all I could come up with)
+# MediaGlob (Global Media Player or GMP)
 
 Global media player webapp for <a href="https://github.com/ItsRiprod/DeskThing">DeskThing</a>. 
 
