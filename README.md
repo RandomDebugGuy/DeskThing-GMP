@@ -2,7 +2,7 @@
 
 Global media player webapp for <a href="https://github.com/ItsRiprod/DeskThing">DeskThing</a>. 
 
-## How to install:
+## ~~How to install:~~ **GMP IS CURRENTLY *BROKEN*! Deepest apologies for the inconveience, I will get this fixed as soon as possible.**
 - 1: Download the latest GMP-app-v0.x.x.zip from the <a href="https://github.com/RandomDebugGuy/DeskThing-GMP.git">releases</a> page. Leave it zipped.
 - 2: Navigate to Apps > App Downloads, then either drag the zip file into the window or click "Drop App ZIP file here" and select the zip file.
 - 3: Click "Run local!"
