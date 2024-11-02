@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "vite",
     "build": "rm -rf dist GMP-app-v* && vite build && npm run build-server && cd dist && zip -r ../GMP-app-v${npm_package_version}.zip .",
+    "build-win": "powershell -File ./build.ps1",
     "build-server": "esbuild server/index.ts --bundle --platform=node --outdir=dist/",
     "test-player": "rm -rf testFolder/*.js testFolder/*.ts && cp server/player.ts testFolder/ && cd testFolder && tsc --target es2020 player.ts && node player.js",
     "setup": "node setup.js",
