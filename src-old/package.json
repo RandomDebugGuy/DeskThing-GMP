@@ -1,0 +1,47 @@
+{
+  "name": "local",
+  "private": true,
+  "version": "0.9.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "rm -rf dist GMP-app-v* && vite build && npm run build-server && cd dist && zip -r ../GMP-app-v${npm_package_version}.zip .",
+    "build-win": "powershell -File ./build.ps1",
+    "build-server": "esbuild server/index.ts --bundle --platform=node --outdir=dist/",
+    "test-player": "rm -rf testFolder/*.js testFolder/*.ts && cp server/player.ts testFolder/ && cd testFolder && tsc --target es2020 player.ts && node player.js",
+    "setup": "node setup.js",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@dbus-types/dbus": "^0.0.4",
+    "dbus-native": "^0.4.0",
+    "dbus-next": "^0.10.2",
+    "dbus-ts": "^0.0.7",
+    "deskthing-client": "^0.8.2",
+    "deskthing-server": "^0.8.3",
+    "extract-zip": "^2.0.1",
+    "os": "^0.1.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "readline": "^1.3.0",
+    "x11": "^2.3.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.9.0",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-legacy": "^5.4.2",
+    "@vitejs/plugin-react": "^4.3.1",
+    "autoprefixer": "^10.4.19",
+    "esbuild": "^0.19.2",
+    "eslint": "^9.9.0",
+    "eslint-plugin-react-hooks": "^5.1.0-rc.0",
+    "eslint-plugin-react-refresh": "^0.4.9",
+    "tailwindcss": "^3.4.10",
+    "typescript": "^5.5.3",
+    "typescript-eslint": "^8.0.1",
+    "vite": "^5.4.1"
+  }
+}

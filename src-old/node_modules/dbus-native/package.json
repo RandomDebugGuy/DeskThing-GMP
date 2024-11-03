@@ -1,0 +1,88 @@
+{
+  "name": "dbus-native",
+  "author": "Andrey Sidorov <sidorares@yandex.com>",
+  "version": "0.4.0",
+  "keywords": [
+    "dbus",
+    "dcop",
+    "d-bus",
+    "rpc",
+    "gnome",
+    "kde"
+  ],
+  "description": "D-bus protocol implementation in native javascript",
+  "files": [
+    "bin/dbus2js.js",
+    "lib/*",
+    "index.js",
+    "package.json"
+  ],
+  "directories": {
+    "lib": "lib",
+    "test": "test",
+    "examples": "examples"
+  },
+  "main": "index.js",
+  "maintainers": [
+    {
+      "name": "Andrey Sidorov",
+      "email": "sidoares@yandex.ru"
+    }
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/sidorares/node-dbus.git"
+  },
+  "bin": {
+    "dbus2js": "./bin/dbus2js.js"
+  },
+  "dependencies": {
+    "event-stream": "^4.0.0",
+    "hexy": "^0.2.10",
+    "long": "^4.0.0",
+    "optimist": "^0.6.1",
+    "put": "0.0.6",
+    "safe-buffer": "^5.1.1",
+    "xml2js": "^0.4.17"
+  },
+  "optionalDependencies": {
+    "abstract-socket": "^2.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^5.0.0",
+    "eslint-config-prettier": "^3.0.0",
+    "eslint-plugin-markdown": "^1.0.0-beta.6",
+    "eslint-plugin-prettier": "^3.0.0",
+    "husky": "^1.0.0",
+    "lint-staged": "^8.0.0",
+    "mocha": "*",
+    "prettier": "^1.7.4"
+  },
+  "scripts": {
+    "lint": "npm run lint:docs && npm run lint:code",
+    "lint:code": "eslint index.js 'bin/*.js' 'lib/**/*.js' 'test/**/*.js'",
+    "lint:docs": "eslint 'examples/**/*.js'",
+    "test": "npm run lint && npm run test:raw",
+    "test:raw": "mocha",
+    "prettier": "prettier --write index.js '{bin,lib,examples,test}/**/*.js'",
+    "prettier:docs": "prettier-markdown README.md",
+    "eslint-check": "eslint --print-config .eslintrc | eslint-config-prettier-check",
+    "precommit": "lint-staged",
+    "prepublish": "npm prune"
+  },
+  "lint-staged": {
+    "*.js": [
+      "prettier --write",
+      "git add"
+    ]
+  },
+  "prettier": {
+    "semi": true,
+    "singleQuote": true,
+    "trailingComma": "none"
+  },
+  "engine": {
+    "node": ">=4.0"
+  }
+}
