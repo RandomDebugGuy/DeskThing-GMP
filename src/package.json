@@ -1,14 +1,19 @@
 {
-  "name": "Deskthing-GMP",
+  "name": "deskthing-gmp",
   "private": true,
   "version": "0.8.8",
+  "homepage": "https://github.com/RandomDebugGuy/DeskThing-GMP",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RandomDebugGuy/DeskThing-GMP.git"
+  },
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
     "dev": "vite",
-    "build": "powershell -File ./build.ps1",
+    "build": "npm run build-client && npm run build-server && node build.cjs",
+    "build-client": "vite build",
     "build-server": "esbuild server/index.ts --bundle --platform=node --outdir=dist/",
-    "setup": "node setup.js",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -20,8 +25,7 @@
     "deskthing-server": "latest",
     "os": "^0.1.2",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "x11": "^2.3.0"
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.0",
@@ -30,6 +34,7 @@
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-legacy": "^5.4.2",
     "@vitejs/plugin-react": "^4.3.1",
+    "archiver": "^7.0.1",
     "autoprefixer": "^10.4.19",
     "esbuild": "^0.19.2",
     "eslint": "^9.9.0",
