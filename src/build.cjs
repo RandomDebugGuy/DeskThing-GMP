@@ -5,7 +5,7 @@ const archiver = require('archiver');
 const buildsDir = path.join(__dirname, 'dist');
 
 const packageVersion = require('./public/manifest.json').version;
-const zipName = `GMP-app-${packageVersion}.zip`
+const zipName = `GMP-app-v${packageVersion}.zip`
 const modulesToCopy = [];
 
 console.log('\nCreating build...');
