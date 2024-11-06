@@ -1,7 +1,7 @@
 {
   "name": "deskthing-gmp",
   "private": true,
-  "version": "0.8.8",
+  "version": "0.9.2",
   "homepage": "https://github.com/RandomDebugGuy/DeskThing-GMP",
   "repository": {
     "type": "git",
@@ -25,7 +25,8 @@
     "deskthing-server": "latest",
     "os": "^0.1.2",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "x11": "^2.3.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.0",

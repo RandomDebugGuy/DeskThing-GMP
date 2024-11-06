@@ -47,6 +47,7 @@ class main {
                 await this.mediaPlayer.returnSongData(DeskThing);
                 break
             case 'refresh':
+                console.log('Checking for refresh...')
                 await this.mediaPlayer.checkForRefresh(DeskThing);
                 break
             default:

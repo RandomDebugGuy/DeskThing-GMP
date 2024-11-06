@@ -5,7 +5,7 @@
     "isLocalApp": false,
     "requires": [],
     "label": "GMP App",
-    "version": "v0.9.0",
+    "version": "v0.9.2",
     "version_code": 9.0,
     "compatible_server": [9],
     "compatible_client": [9],

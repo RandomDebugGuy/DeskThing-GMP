@@ -3,9 +3,22 @@ import { exec } from 'child_process';
 class winPlayer {
   public DeskThing: any;
   private currentId: string | null;
+  private isUpdating: boolean;
+  private updateTimeout: number;
+
   constructor(DeskThing) {
     this.DeskThing = DeskThing;
     this.currentId = null;
+    this.updateTimeout = 1500;
+  }
+
+  setUpdate() {
+    if (!this.isUpdating) {
+      this.isUpdating = true;
+      setTimeout(() => {
+        this.isUpdating = false;
+      }, this.updateTimeout);
+    } else return false;
   }
 
   async sendLog(message) {
@@ -15,13 +28,15 @@ class winPlayer {
     this.DeskThing.sendError(message)
   }
 
-  async returnSongData(DeskThing) {
+  async returnSongData(uselessVarForCompatibility) {
     try {
       const result:any = await this.executeCommand('')
       if (result === false) {
         this.sendError('Music Data returned false! There was an error');
         return false;
       } else {
+        if (this.currentId !== result.id) {
+          this.currentId = result.id;
           const musicData:any = result;
           musicData.thumbnail = "data:image/png;base64," + musicData.thumbnail;
           musicData.volume = await this.getVolumeInfo();
@@ -33,7 +48,22 @@ class winPlayer {
             payload: musicData
           }
           this.DeskThing.sendDataToClient(response);
+        } else {
+          if (!this.isUpdating) {
+            this.sendLog('Refreshing playback status...');
 
+            const response = {
+              app: 'client',
+              type: 'song',
+              payload: {
+                is_playing: result.is_playing,
+                track_progress: result.track_progress,
+                volume: await this.getVolumeInfo(),
+              }
+            };
+            this.DeskThing.sendDataToClient(response);
+          }
+        }
       }
     } catch (error) {
       this.sendError(`Error executing next command: ${error}`);
@@ -41,14 +71,8 @@ class winPlayer {
     }
   }
 
-  async checkForRefresh(DeskThing) {
-    const result:any = await this.executeCommand('')
-    if (result === false) {
-      this.sendError('Music Data returned false! There was an error');
-      return false;
-    } else if (result.id !== this.currentId) {
-      return this.returnSongData(DeskThing)
-    }
+  async checkForRefresh(uselessVarForCompatibility) {
+    return this.returnSongData(uselessVarForCompatibility);
   }
 
   async executeCommand(command, args = '') {
@@ -92,12 +116,21 @@ class winPlayer {
 
   async getVolumeInfo () {
     const data:any = await this.exeVol()
-    const args = data.split(' ')
-  
+    const args = data.split(' ');
     return parseInt(args[0], 10)
   }
 
+
+  checkIfIsMuted() {
+    const data:any = this.exeVol()
+    const args = data.split(' ')
+    if (parseInt(args[1], 10) === 1) {
+      return true
+    } else return false
+  }
+
   async next(id) {
+    this.setUpdate();
     const result:any = await this.executeCommand('next');
     if (result.success) {
       return await this.returnSongData(id)
@@ -106,44 +139,63 @@ class winPlayer {
   }
 
   async previous() {
-    return this.executeCommand('previous');
+    this.setUpdate();
+    this.executeCommand('previous');
   }
 
   async fastForward(seconds) {
-    return this.executeCommand('fastforward', seconds);
+    this.setUpdate();
+    this.executeCommand('fastforward', seconds);
   }
 
   async rewind(seconds) {
-    return this.executeCommand('rewind', seconds);
+    this.setUpdate(); 
+    this.executeCommand('rewind', seconds);
   }
 
   async play() {
-    return this.executeCommand('play');
+    this.setUpdate();
+    this.executeCommand('play');
   }
 
   async pause() {
-    return this.executeCommand('pause');
+    this.setUpdate();
+    this.executeCommand('pause');
   }
 
   async stop() {
+    this.setUpdate();
     return this.executeCommand('stop');
   }
 
   async seek(positionMs) {
-    return this.executeCommand('seek', positionMs);
+    this.setUpdate();
+    this.executeCommand('seek', positionMs);
   }
 
   async volume(volumePercentage) {
-    this.exeVol(String(volumePercentage));
+    this.setUpdate();
+    if (volumePercentage <= 4) {
+      if (!this.checkIfIsMuted()) {
+        this.exeVol('mute');
+      }
+    } else {
+      if (this.checkIfIsMuted()) {
+        this.exeVol('unmute');
+      }
+      this.exeVol(volumePercentage);
+    }
     return true
   }
 
   async repeat(state) {
-    return this.executeCommand('setrepeat', state);
+    this.setUpdate();
+    this.executeCommand('setrepeat', state);
   }
 
   async shuffle(state) {
-    return this.executeCommand('setshuffle', state);
+    this.setUpdate();
+    this.executeCommand('setshuffle', state);
   }
 }
 

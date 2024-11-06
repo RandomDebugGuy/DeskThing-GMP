@@ -1,4 +1,4 @@
-import MediaPlayer from './player.js'
+import MediaPlayer from './linuxInterface.js'
 
 class linuxPlayer {
   private player: MediaPlayer;
@@ -14,7 +14,6 @@ class linuxPlayer {
   
   async returnSongData(DeskThing, isRefresh) {
     try {
-      
       const data = await new Promise((resolve, reject) => {
         this.player.getMetadata(async (err, result) => {
           if (err) {
