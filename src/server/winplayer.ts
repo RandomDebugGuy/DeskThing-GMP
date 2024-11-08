@@ -1,4 +1,5 @@
-import { exec } from 'child_process';
+//@ts-expect-error stop whining about this import bruh
+import { spawn } from 'child_process';
 
 class winPlayer {
   public DeskThing: any;
@@ -30,7 +31,7 @@ class winPlayer {
 
   async returnSongData(uselessVarForCompatibility) {
     try {
-      const result:any = await this.executeCommand('')
+      const result:any = await this.executeCommand()
       if (result === false) {
         this.sendError('Music Data returned false! There was an error');
         return false;
@@ -54,10 +55,12 @@ class winPlayer {
 
             const response = {
               app: 'client',
-              type: 'song',
+              type: 'refresh',
               payload: {
                 is_playing: result.is_playing,
                 track_progress: result.track_progress,
+                id: result.id,
+                track_name: result.track_name,
                 volume: await this.getVolumeInfo(),
               }
             };
@@ -75,54 +78,39 @@ class winPlayer {
     return this.returnSongData(uselessVarForCompatibility);
   }
 
-  async executeCommand(command, args = '') {
+  async executeCommand(...args: string[]) {
     return new Promise((resolve, reject) => {
-      exec(`cd ${__dirname} && DeskThingMediaCLI.exe ${command} ${args}`, (error, stdout, stderr) => {
-        if (error) {
-          this.sendError(`exec error: ${error}`);
-          reject(false);
-          return;
-        }
-
-        try {
-          const result = JSON.parse(stdout);
-          resolve(result);
-        } catch (parseError) {
-          this.sendError('Error parsing JSON:' + parseError);
-          reject(false);
-        }
-      });
+      console.log(args);
+      // @ts-expect-error __dirname is not an error my guy
+      const process = spawn(`DeskThingMediaCLI.exe`, args, { cwd: __dirname });
+      let stdout = '';
+      process.stdout.on('data', (data:any) => stdout += data.toString());
+      
+      process.on('close', () => resolve(JSON.parse(stdout)));
     });
   }
 
   async exeVol(...args) {
     return new Promise((resolve, reject) => {
-      exec(`cd ${__dirname} && adjust_get_current_system_volume_vista_plus.exe ${args}`, (error, stdout, stderr) => {
-        if (error) {
-          this.sendError(`exec error: ${error}`);
-          reject(false);
-          return;
-        }
-
-        try {
-          resolve(stdout);
-        } catch (parseError) {
-          this.sendError('Error parsing JSON:' + parseError);
-          reject(false);
-        }
+      console.log(args);
+      //@ts-expect-error __dirname is not an error my guy
+      const program = spawn(`adjust_get_current_system_volume_vista_plus.exe`, args, { cwd:  __dirname });;
+      let stdout = '';
+      program.stdout.on('data', (data) => {
+        stdout += data.toString();
       });
+      program.on('close', () => resolve(stdout));
     });
   }
 
   async getVolumeInfo () {
-    const data:any = await this.exeVol()
+    const data:any = await this.exeVol();
     const args = data.split(' ');
     return parseInt(args[0], 10)
   }
 
-
-  checkIfIsMuted() {
-    const data:any = this.exeVol()
+  async checkIfIsMuted() {
+    const data:any = await this.exeVol();
     const args = data.split(' ')
     if (parseInt(args[1], 10) === 1) {
       return true
@@ -133,7 +121,7 @@ class winPlayer {
     this.setUpdate();
     const result:any = await this.executeCommand('next');
     if (result.success) {
-      return await this.returnSongData(id)
+      return await this.returnSongData(id);
     }
     return false
   }
@@ -176,11 +164,11 @@ class winPlayer {
   async volume(volumePercentage) {
     this.setUpdate();
     if (volumePercentage <= 4) {
-      if (!this.checkIfIsMuted()) {
+      if (! await this.checkIfIsMuted()) {
         this.exeVol('mute');
       }
     } else {
-      if (this.checkIfIsMuted()) {
+      if (await this.checkIfIsMuted()) {
         this.exeVol('unmute');
       }
       this.exeVol(volumePercentage);
