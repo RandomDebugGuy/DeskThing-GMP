@@ -1,6 +1,6 @@
-# MediaGlob (Global Media Player or GMP)
+# GMP (Global Media Player)
 
-Global media player webapp for <a href="https://github.com/ItsRiprod/DeskThing">DeskThing</a>. 
+Global media controller app for <a href="https://github.com/ItsRiprod/DeskThing">DeskThing</a>. 
 
 ## How to install:
 - 1: Download the latest GMP-app-v0.x.x.zip from the <a href="https://github.com/RandomDebugGuy/DeskThing-GMP.git">releases</a> page. Leave it zipped.
