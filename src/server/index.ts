@@ -1,12 +1,12 @@
-import { DeskThing as DK } from 'deskthing-server';
-const DeskThing = DK.getInstance();
+import { DeskThing } from 'deskthing-server';
 export { DeskThing }
+import settingsImport from './settings'; // settings manager for deskthing bc riprod's kinda sucks (sorry riprod if you're reading this lmao)
 import os from 'os';
 
 const switchPlatform = async () => {
   switch(await os.platform()) {
       case 'win32':
-          return new (await import('./winPlayer')).winPlayer(DeskThing);
+          return new (await import('./win')).winPlayer(DeskThing);
       case 'linux':
           return new (await import('./linuxInterface')).linuxPlayer(DeskThing);
       default:
@@ -16,15 +16,64 @@ const switchPlatform = async () => {
 }
 let mediaPlayer;
 
+const settingsManager = new settingsImport(DeskThing)
+
 const init = async () => mediaPlayer = await switchPlatform();
 
-const start = async () => {
+async function start() {
   await init();
+  
   DeskThing.sendLog('Detected Platform:' + await os.platform());
+
+  //handleData(await DeskThing.getData());
+
+  //DeskThing.on('data', handleData);
 
   DeskThing.on('get', handleGet);
   DeskThing.on('set', handleSet);
-} 
+}
+
+async function handleData(data:any) {
+  const settings = data.settings;
+  settingsManager.settings = settings; // always update the settings before using the manager
+  settingsManager.add({
+    playerselectEnabled: {
+      label: "Media player selection capability",
+      description: "Enables or disables the media player selection capability",
+      type: "select",
+      value: "disabled",
+      options: [
+        {
+          label: "Yes",
+          value: "enabled"
+        },
+        {
+          label: "No",
+          value: "disabled"
+        }
+      ]
+    }
+  });
+
+  if (mediaPlayer?.sessionIsSet && !settings?.playerOptions) {
+    const options = await mediaPlayer.getSettingsOptionsArray();
+    let values = [...options.map((option) => option.value)];
+    DeskThing.addSettings({
+      playerOptions: {
+        type: 'ranked',
+        label: 'Selected Playback Program',
+        value: values,
+        options: options,
+      }
+    });
+    mediaPlayer.allPlayersArray = options || [];
+    return;
+  }
+
+  mediaPlayer.allPlayersArray = settings?.playerOptions?.value || ['spotify.exe'];
+  mediaPlayer.sessionIsSet = settings?.playerselectEnabled?.value === 'enabled';
+  console.log(mediaPlayer.sessionIsSet);
+}
 
 async function handleGet(data) {
   if (data == null) {
@@ -47,6 +96,7 @@ async function handleGet(data) {
     }
 }
 
+
 async function handleSet(data) {
   if (data == null) {
       DeskThing.sendError('No args provided')
@@ -61,8 +111,8 @@ async function handleSet(data) {
       case 'next':
         response = await mediaPlayer.next(data.payload)
         if (!response == false) {
-          response = { app: 'client', type: 'song', payload: response }
-          DeskThing.sendDataToClient(response)
+          response = { type: 'song', app: 'client', payload: response }
+          DeskThing.send(response)
         }
         break
       case 'previous':
@@ -97,6 +147,5 @@ async function handleSet(data) {
         break
     }
 }
-
 
 DeskThing.on('start', start)
