@@ -6,8 +6,9 @@ class settingsManager {
     }
 
     /**
+     * Adds settings; does nothing if settings already exist
      * 
-     * @param settings Settings to add
+     * @param { JSON[] | JSON } settings - Settings to add
      * 
      * @returns void
      * 
@@ -39,20 +40,17 @@ class settingsManager {
      * 
      */
     add(settings: any) {
-      for (const setting of settings) {
-        if (!(setting in this.settings)) {
-          this.DeskThing.addSettings(setting);
-        } else {
-          this.update(setting);
+      Object.entries(settings).forEach((setting: any) => {
+        if (!(setting[0] in this.settings)) {
+          this.DeskThing.addSettings(setting[0]);
         }
-      }
+      });
     }
 
     /**
-     * 
      * Updates settings, adds them if they don't exist
      * 
-     * @param settings Settings to update
+     * @param { JSON[] | JSON } settings - Settings to update
      *
      * @returns void
      * 
@@ -104,6 +102,39 @@ class settingsManager {
           }
         }
       }
+    }
+    /**
+     * Deletes settings
+     * 
+     * @param { JSON[] } settings - Settings to delete
+     * 
+     * @returns void
+     * 
+     * @deprecated Doesn't work at the moment, will be fixed when DeskThing's settings system is stable
+     * 
+     * @example
+     * 
+     * import settings_manager from './settings';
+     * const settingsManager = new settings_manager(DeskThingInstance);
+     * 
+     * settingsManager.delete({
+     *   theme: {
+     *     label: "App theme",
+     *     description: "Select the theme of the app",
+     *     type: "select",
+     *     value: "value",
+     *     options: [{
+     *         label: "Light",
+     *         value: "light"
+     *       }, {
+     *         label: "Dark",
+     *         value: "dark"
+     *       }
+     *     ]}
+     * });
+     * */
+    delete(settings: any) {
+      throw new Error('Deleting settings is not yet supported, but will be when DeskThing\'s setting system is stable.');
     }
 }
 

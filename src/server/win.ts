@@ -28,7 +28,7 @@ type Song = {
 
 class winPlayer {
   public DeskThing: any;
-  private currentId: string;
+  private currentId: string | null;
   private isUpdating: boolean;
   private updateTimeout: number;
   public sessionIsSet: boolean;
@@ -87,29 +87,25 @@ class winPlayer {
 
   async returnSongData() {
     const result:Song = await this.executeCommand() as Song;
-    console.log("currentIbhjbD: ", result);
 
-    if (this.currentId !== result.id as string) {
-      this.currentId = result.id as string;
+    if (this.currentId !== result.id) {
+      this.currentId = result.id;
       const musicData:any = result;
       musicData.thumbnail = "data:image/png;base64," + musicData.thumbnail;
       musicData.can_change_volume = true;
-      this.DeskThing.sendLog('Returning song data hopefully please work i would be so happy');
       const response = {
         type: 'song',
         app: 'client',
         payload: musicData
       }
-      this.DeskThing.send(JSON.parse(JSON.stringify(response)))
+      this.DeskThing.send(response);
     } else {
       if (!this.isUpdating) {
-        this.DeskThing.sendLog('ATTEMPTING TO REFRESH PLAYBACK STATUS....................');
         const response = {
           type: 'song',
           app: 'client',
           payload: {
             id: result.id,
-            thumbnail: "data:image/png;base64," + result.thumbnail,
             is_playing: result.is_playing,
             shuffle_state: result.shuffle_state,
             repeat_state: result.repeat_state,
@@ -118,7 +114,7 @@ class winPlayer {
             volume: result.volume,
           }
         }
-        this.DeskThing.send(JSON.parse(JSON.stringify(response)));
+        this.DeskThing.send(response);
       }
     }
   }
@@ -173,7 +169,6 @@ class winPlayer {
         process.stdout.on('data', (data: any) => stdout += data.toString());
         process.on('close', (code: any) => {
           if (code === 0) {
-            console.log("dope ass fucking stdout with garlic bread:", stdout);
             resolve(JSON.parse(stdout));
           } else reject(false);
         })
