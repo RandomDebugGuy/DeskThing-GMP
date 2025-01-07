@@ -26,6 +26,8 @@ class linuxPlayer {
     private sessionBus: any;
     private serviceName: any;
     private serviceNameBus: any;
+    private isUpdating: boolean;
+    private updateTimeout: number;
 
     private currentId: string;
 
@@ -38,8 +40,18 @@ class linuxPlayer {
         this.playerObjectProperties = null;
         this.sessionBus = dbus.sessionBus();
         this.serviceNameBus = dbusnative.sessionBus();
-
         this.currentId = '';
+        this.isUpdating = false;
+        this.updateTimeout = 1500;
+    }
+
+    setUpdate() {
+      if (!this.isUpdating) {
+        this.isUpdating = true;
+        setTimeout(() => {
+          this.isUpdating = false;
+        }, this.updateTimeout);
+      } else return false;
     }
 
     async detectMediaPlayer() {
@@ -82,85 +94,132 @@ class linuxPlayer {
     }
 
     public async returnSongData() {
+      if (this.isUpdating) {
+        return false;
+      }
+      if (this.player === null) {
+        await this.init();
+      }
       const properties = await this.playerObjectProperties.GetAll('org.mpris.MediaPlayer2.Player');
-
       const metaData = properties.Metadata.value;
-      console.log(metaData);
-      const thumbnail = await this.DeskThing.encodeImageFromUrl(metaData['mpris:artUrl'].value, 'jpeg');
-      const response: SongData = {
-        id: metaData['xesam:title'].value,
-        album: metaData['xesam:album'].value,
-        artist: metaData['xesam:artist'].value[0],
-        track_name: metaData['xesam:title'].value,
-        thumbnail: thumbnail,
-        track_length: Number(metaData['mpris:length'].value / BigInt(1000)),
-        track_progress: Number(properties.Position.value / BigInt(1000)),
-        is_playing: properties.PlaybackStatus.value == "Playing",
-        volume: properties.Volume.value * 100,
-        shuffle_state: properties.Shuffle.value,
-        repeat_state: properties.LoopStatus.value,
-        can_play: properties.CanPlay.value,
-        can_change_volume: true,
-        playlist: 'Not implemented',
-      };
-      this.currentId = response.id;
-      this.DeskThing.sendDataToClient({ app: 'client', type: 'song', payload: response });
-    }
 
-    public async checkForRefresh() {
-      const result = await this.playerObjectProperties.GetAll('org.mpris.MediaPlayer2.Player');
-      const metaData = result.Metadata.value;
-
-      if (result.Metadata.value['xesam:title'].value !== this.currentId) {
-        this.returnSongData();
-      } else {
-        const data = {
-          id: metaData['mpris:title'].value,
-          track_name: metaData['xesam:title'].value,
-          is_playing: result.PlaybackStatus.value == "Playing",
-          volume: result.Volume.value * 100,
-          shuffle_state: result.Shuffle.value,
-          repeat_state: result.LoopStatus.value.toLowerCase(),
-          track_progress: Number(result.Position.value / BigInt(1000)),
-          track_duration: Number(metaData['mpris:length'].value / BigInt(1000)),
+      if (metaData['xesam:title'].value !== this.currentId) {
+        this.currentId = metaData['xesam:title'].value;
+        const thumbnail = await this.DeskThing.encodeImageFromUrl(metaData['mpris:artUrl'].value, 'jpeg');
+        const response = {
+          type: 'song',
+          app: 'client',
+          payload: {
+            id: metaData['xesam:title'].value,
+            album: metaData['xesam:album'].value,
+            artist: metaData['xesam:artist'].value[0],
+            track_name: metaData['xesam:title'].value,
+            thumbnail: thumbnail,
+            track_length: Number(metaData['mpris:length'].value / BigInt(1000)),
+            track_progress: Number(properties.Position.value / BigInt(1000)),
+            is_playing: properties.PlaybackStatus.value == "Playing",
+            volume: properties.Volume.value * 100,
+            shuffle_state: properties.Shuffle.value,
+            repeat_state: properties.LoopStatus.value,
+            can_play: properties.CanPlay.value,
+            can_change_volume: true,
+            playlist: 'Not implemented',
+          }
         };
-        this.DeskThing.sendDataToClient({ app: 'client', type: 'song', payload: data });
+        this.DeskThing.sendDataToClient(response);
+      } else {
+        if (!this.isUpdating) {
+          const response = {
+            type: 'song',
+            app: 'client',
+            payload: {
+              id: metaData['xesam:title'].value,
+              is_playing: properties.PlaybackStatus.value == "Playing",
+              volume: properties.Volume.value * 100,
+              shuffle_state: properties.Shuffle.value,
+              repeat_state: properties.LoopStatus.value,
+              can_play: properties.CanPlay.value,
+              can_change_volume: true,
+              track_length: Number(metaData['mpris:length'].value / BigInt(1000)),
+              track_progress: Number(properties.Position.value / BigInt(1000)),
+            }
+          };
+          this.DeskThing.send(response);
+        }
       }
     }
 
+    public async checkForRefresh() {
+      await this.returnSongData();
+      return;
+    }
+
     public async play() {
+      this.setUpdate();
+      if (this.player === null) {
+        await this.init();
+      }
       return await this.player.Play();
     }
 
-    public async pause() {
+    public async pause() {      
+      this.setUpdate();
+      if (this.player === null) {
+        await this.init();
+      }
       return await this.player.Pause();
     }
 
-    public async next() {
+    public async next() {      
+      this.setUpdate();
+      if (this.player === null) {
+        await this.init();
+      }
       return await this.player.Next();
     }
 
-    public async previous() {
+    public async previous() {      
+      this.setUpdate();
+      if (this.player === null) {
+        await this.init();
+      }
       return await this.player.Previous();
     }
 
-    public async seek(position: number) {
+    public async seek(position: number) {      
+      this.setUpdate();
+      if (this.player === null) {
+        await this.init();
+      }
+      console.log(position);
       const trackId = (await this.playerObjectProperties.Get('org.mpris.MediaPlayer2.Player', 'Metadata')).value['mpris:trackid'].value;
       const seek = BigInt(position * 1000);
       return await this.player.SetPosition(trackId, seek);
     }
 
-    public async Volume(volume: number) {
+    public async Volume(volume: number) {      
+      this.setUpdate();
+      if (this.player === null) {
+        await this.init();
+      }
       const vol = new dbus.Variant('d', Math.round(volume / 100));
       return await this.playerObjectProperties.Set('org.mpris.MediaPlayer2.Player', 'Volume', vol);
     }
 
-    public async setRepeat(state: string) {
+    public async setRepeat(state: string) {      
+      this.setUpdate();
+      if (this.player === null) {
+        await this.init();
+      }
       const repeat = new dbus.Variant('s', state.charAt(0).toUpperCase() + state.slice(1));
       return await this.playerObjectProperties.Set('org.mpris.MediaPlayer2.Player', 'LoopStatus', repeat);
     }
 
-    public async setShuffle(state: boolean) {
+    public async setShuffle(state: boolean) {      
+      this.setUpdate();
+      if (this.player === null) {
+        await this.init();
+      }
       const shuffle = new dbus.Variant('b', state);
       return await this.playerObjectProperties.Set('org.mpris.MediaPlayer2.Player', 'Shuffle', shuffle);
     }    

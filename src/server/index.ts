@@ -8,7 +8,9 @@ const switchPlatform = async () => {
       case 'win32':
           return new (await import('./win')).winPlayer(DeskThing);
       case 'linux':
-          return new (await import('./linuxInterface')).linuxPlayer(DeskThing);
+          const thisplayer = new (await import('./linuxInterface')).linuxPlayer(DeskThing)
+          await thisplayer.init();
+          return thisplayer;
       default:
           console.warn('GMP APP: Unsupported platform, assuming linux.');
           return new (await import('./linuxInterface')).linuxPlayer(DeskThing);
