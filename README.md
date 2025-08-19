@@ -2,6 +2,11 @@
 
 Global media controller app for <a href="https://github.com/ItsRiprod/DeskThing">DeskThing</a>. 
 
+## DEPPRECATION NOTICE
+GMP has been deprecated as of 5/11/2025. This means it will no longer be developed or supported.
+
+The main replacement is Local Audio, available in the DeskThing server application.
+
 ## How to install:
 - 1: Download the latest GMP-app-v0.x.x.zip from the <a href="https://github.com/RandomDebugGuy/DeskThing-GMP.git">releases</a> page. Leave it zipped.
 - 2: Navigate to Apps > App Downloads, then either drag the zip file into the window or click "Drop App ZIP file here" and select the zip file.
